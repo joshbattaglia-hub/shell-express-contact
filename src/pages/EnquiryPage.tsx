@@ -8,7 +8,6 @@ export default function EnquiryPage() {
   const tenant = useTenant();
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  if (tenant === "coco") return <Navigate to={tenantPath("coco", "/survey")} replace />;
   const [sites, setSites] = useState<PublicSite[]>([]);
   const [fields, setFields] = useState<FieldDef[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -23,6 +22,7 @@ export default function EnquiryPage() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    if (tenant === "coco") return;
     api<{ sites: PublicSite[]; fields: FieldDef[] }>(tenant, "public-config")
       .then((data) => {
         setSites(data.sites || []);
@@ -90,6 +90,10 @@ export default function EnquiryPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (tenant === "coco") {
+    return <Navigate to={tenantPath("coco", "/survey")} replace />;
   }
 
   return (

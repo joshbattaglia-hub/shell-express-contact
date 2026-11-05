@@ -1,0 +1,11 @@
+node_modules
+dist
+.netlify
+.admin-password.tmp
+.session-secret.tmp
+.admin-password-value.txt
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example

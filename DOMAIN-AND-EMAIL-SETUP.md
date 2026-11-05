@@ -2,7 +2,8 @@
 
 Site: **shell-express-contact** on Netlify  
 Primary domain: **https://expresshelp.com.au**  
-Aliases (301 → primary): www.expresshelp.com.au, expresshelp.au, www.expresshelp.au, expresshelp.site, www.expresshelp.site  
+Aliases (301 → primary): www.expresshelp.com.au, expresshelp.au, www.expresshelp.au  
+`expresshelp.site` / `www.expresshelp.site` moved to Netlify site **liberty-qr-353** (QR codes).  
 Default Netlify URL (kept working): **https://shell-express-contact.netlify.app**
 
 Do **not** change nameservers away from VentraIP. Use VentraIP’s free DNS Hosting only.  
@@ -20,8 +21,6 @@ Configured on the Netlify site (no nameserver change):
 | Alias | `www.expresshelp.com.au` |
 | Alias | `expresshelp.au` |
 | Alias | `www.expresshelp.au` |
-| Alias | `expresshelp.site` |
-| Alias | `www.expresshelp.site` |
 | Default | `shell-express-contact.netlify.app` |
 
 Redirects in `netlify.toml` send every alias (and HTTP) to **https://expresshelp.com.au**.  
@@ -42,13 +41,14 @@ Remove any **AAAA** (IPv6) records — Netlify’s load-balancer IP path does no
 
 ---
 
-## 2. VentraIP DNS — step by step (all three domains)
+## 2. VentraIP DNS — step by step (contact domains)
 
 Repeat for each of:
 
 1. `expresshelp.com.au` (primary)
 2. `expresshelp.au`
-3. `expresshelp.site`
+
+For `expresshelp.site` DNS (QR site), see the qr-codes README / liberty-qr-353 domain settings — CNAME www → `liberty-qr-353.netlify.app`.
 
 ### Open DNS hosting
 
@@ -74,13 +74,6 @@ Delete any default parking records that conflict, for example:
 | CNAME | `www` | `shell-express-contact.netlify.app` | 3600 |
 
 #### For `expresshelp.au`
-
-| Type | Host / Name | Value | TTL |
-| --- | --- | --- | --- |
-| A | `@` | `75.2.60.5` | 3600 |
-| CNAME | `www` | `shell-express-contact.netlify.app` | 3600 |
-
-#### For `expresshelp.site`
 
 | Type | Host / Name | Value | TTL |
 | --- | --- | --- | --- |
@@ -148,7 +141,7 @@ App code posts to Resend’s current API: `POST https://api.resend.com/emails` w
 ## 5. Quick checklist
 
 - [ ] `.au` registration complete  
-- [ ] VentraIP A + www CNAME on all three domains; parking records removed  
+- [ ] VentraIP A + www CNAME on expresshelp.com.au and expresshelp.au; parking records removed  
 - [ ] Netlify domains verified + TLS provisioned  
 - [ ] Resend domain verified + `RESEND_API_KEY` + `EMAIL_FROM` set  
 - [ ] Email toggled on in CA and CoCo settings  

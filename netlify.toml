@@ -148,26 +148,6 @@
   status = 301
   force = true
 [[redirects]]
-  from = "https://expresshelp.site/*"
-  to = "https://expresshelp.com.au/:splat"
-  status = 301
-  force = true
-[[redirects]]
-  from = "https://expresshelp.site"
-  to = "https://expresshelp.com.au/"
-  status = 301
-  force = true
-[[redirects]]
-  from = "https://www.expresshelp.site/*"
-  to = "https://expresshelp.com.au/:splat"
-  status = 301
-  force = true
-[[redirects]]
-  from = "https://www.expresshelp.site"
-  to = "https://expresshelp.com.au/"
-  status = 301
-  force = true
-[[redirects]]
   from = "http://www.expresshelp.com.au/*"
   to = "https://expresshelp.com.au/:splat"
   status = 301
@@ -187,17 +167,6 @@
   to = "https://expresshelp.com.au/:splat"
   status = 301
   force = true
-[[redirects]]
-  from = "http://expresshelp.site/*"
-  to = "https://expresshelp.com.au/:splat"
-  status = 301
-  force = true
-[[redirects]]
-  from = "http://www.expresshelp.site/*"
-  to = "https://expresshelp.com.au/:splat"
-  status = 301
-  force = true
-
 
 [[redirects]]
   from = "/*"

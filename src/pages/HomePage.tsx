@@ -18,6 +18,7 @@ const DEFAULT_SUB = "We're here to help · CA";
 export default function HomePage() {
   const tenant = useTenant();
   const [headerSubtext, setHeaderSubtext] = useState(DEFAULT_SUB);
+  const [chosen, setChosen] = useState<string | null>(null);
 
   useEffect(() => {
     if (tenant === "coco") return;
@@ -45,9 +46,11 @@ export default function HomePage() {
           {TOPICS.map((t) => (
             <Link
               key={t}
-              className="topic"
+              className={`topic${chosen === t ? " active" : ""}`}
               role="listitem"
+              aria-current={chosen === t ? "true" : undefined}
               to={`${tenantPath(tenant, "/enquire")}?type=${encodeURIComponent(t)}`}
+              onPointerDown={() => setChosen(t)}
             >
               {t}
             </Link>

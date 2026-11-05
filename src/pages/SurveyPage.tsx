@@ -10,6 +10,23 @@ function fillTemplate(msg: string, phone: string, email: string) {
     .replace(/\{\{\s*email\s*\}\}/gi, email || "");
 }
 
+/** Step 1 used this title; it was left on later steps after that step was removed. */
+const LEGACY_STEP_HEADING = "how did we do today?";
+
+function displayHeading(stepTitle?: string, surveyTitle?: string, fallback = ""): string {
+  const step = String(stepTitle || "").trim();
+  if (step && step.toLowerCase() !== LEGACY_STEP_HEADING) return step;
+  const survey = String(surveyTitle || "").trim();
+  if (survey && survey.toLowerCase() !== LEGACY_STEP_HEADING) return survey;
+  return fallback;
+}
+
+function StepHeading({ stepTitle, surveyTitle }: { stepTitle?: string; surveyTitle?: string }) {
+  const heading = displayHeading(stepTitle, surveyTitle);
+  if (!heading) return null;
+  return <h1>{heading}</h1>;
+}
+
 function nextStepId(step: SurveyStep, answers: Record<string, string>): string | null {
   const n = step.next;
   if (!n) return null;
@@ -86,6 +103,33 @@ export default function SurveyPage() {
     setAnswers((prev) => ({ ...prev, [qid]: value }));
   }
 
+  function isMulti(type: string | undefined) {
+    return type === "multi" || type === "multiple";
+  }
+
+  function chosenOptions(qid: string, type: string | undefined): string[] {
+    const raw = String(answers[qid] || "");
+    if (!raw) return [];
+    if (!isMulti(type)) return [raw];
+    return raw.split("\u001e").filter(Boolean);
+  }
+
+  function optionSelected(qid: string, opt: string, type: string | undefined) {
+    return chosenOptions(qid, type).includes(opt);
+  }
+
+  function pickOption(qid: string, opt: string, type: string | undefined) {
+    if (!isMulti(type)) {
+      setAnswer(qid, opt);
+      return;
+    }
+    setAnswers((prev) => {
+      const cur = String(prev[qid] || "").split("\u001e").filter(Boolean);
+      const next = cur.includes(opt) ? cur.filter((item) => item !== opt) : [...cur, opt];
+      return { ...prev, [qid]: next.join("\u001e") };
+    });
+  }
+
   function canAdvance(s: SurveyStep): boolean {
     if (s.kind === "message") return true;
     for (const q of s.questions || []) {
@@ -132,7 +176,7 @@ export default function SurveyPage() {
       <div className="page">
         <BrandHeader subtitle={headerSubtext} />
         <section className="hero-card survey-card">
-          <h1>{msgStep?.title || survey?.title || "Thank you"}</h1>
+          <h1>{displayHeading(msgStep?.title, survey?.title, "Thank you")}</h1>
           <p className="survey-message">{msg}</p>
           {done.reference ? (
             <div className="ref-box" aria-label="Reference number">
@@ -156,7 +200,7 @@ export default function SurveyPage() {
           <p className="muted">Loading…</p>
         ) : (
           <>
-            <h1>{step.title || survey.title}</h1>
+            <StepHeading stepTitle={step.title} surveyTitle={survey.title} />
 
             {survey.sitePickerEnabled && step.id === survey.steps[0]?.id ? (
               <div className="field" style={{ marginBottom: 16 }}>
@@ -195,8 +239,9 @@ export default function SurveyPage() {
                           <button
                             key={opt}
                             type="button"
-                            className={`topic yesno-btn${answers[q.id] === opt ? " active" : ""}`}
-                            onClick={() => setAnswer(q.id, opt)}
+                            aria-pressed={optionSelected(q.id, opt, q.type)}
+                            className={`topic yesno-btn${optionSelected(q.id, opt, q.type) ? " active" : ""}`}
+                            onClick={() => pickOption(q.id, opt, q.type)}
                           >
                             {opt}
                           </button>
@@ -204,17 +249,21 @@ export default function SurveyPage() {
                       </div>
                     ) : (
                       <div className="topic-grid" role="list">
-                        {(q.options || []).map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            role="listitem"
-                            className={`topic${answers[q.id] === opt ? " active" : ""}`}
-                            onClick={() => setAnswer(q.id, opt)}
-                          >
-                            {opt}
-                          </button>
-                        ))}
+                        {(q.options || []).map((opt) => {
+                          const selected = optionSelected(q.id, opt, q.type);
+                          return (
+                            <button
+                              key={opt}
+                              type="button"
+                              role="listitem"
+                              aria-pressed={selected}
+                              className={`topic${selected ? " active" : ""}`}
+                              onClick={() => pickOption(q.id, opt, q.type)}
+                            >
+                              {opt}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

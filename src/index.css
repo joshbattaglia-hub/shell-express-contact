@@ -30,9 +30,49 @@ h1, h2, h3, h4, h5, h6 {
 html, body, #root { margin: 0; min-height: 100%; }
 body { background: linear-gradient(180deg, var(--yellow-20) 0%, var(--bg) 220px); }
 
-a { color: var(--red); }
+/* iOS Safari colours a:link / a:visited from the UA sheet, which beats `a { color }`.
+   Set every link state explicitly, and reset button appearance so option controls
+   stay dark (or brand) instead of the default blue. */
+a:link,
+a:visited,
+a:hover,
+a:active,
+a:focus {
+  color: var(--red);
+}
 button, input, select, textarea {
   font: inherit;
+}
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  -webkit-appearance: none;
+  appearance: none;
+  color: var(--ink);
+  background-color: transparent;
+}
+button:link,
+button:visited,
+button:hover,
+button:active,
+button:focus,
+input[type="button"]:link,
+input[type="button"]:visited,
+input[type="button"]:hover,
+input[type="button"]:active,
+input[type="button"]:focus,
+input[type="submit"]:link,
+input[type="submit"]:visited,
+input[type="submit"]:hover,
+input[type="submit"]:active,
+input[type="submit"]:focus,
+input[type="reset"]:link,
+input[type="reset"]:visited,
+input[type="reset"]:hover,
+input[type="reset"]:active,
+input[type="reset"]:focus {
+  color: var(--ink);
 }
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -51,7 +91,15 @@ button, input, select, textarea {
   margin-bottom: 28px;
 }
 .brand-header.compact { margin-bottom: 16px; text-align: left; }
-.brand-lockup { display: inline-block; text-decoration: none; }
+.brand-lockup { display: inline-block; text-decoration: none; color: inherit; }
+.brand-lockup:link,
+.brand-lockup:visited,
+.brand-lockup:hover,
+.brand-lockup:active,
+.brand-lockup:focus {
+  color: inherit;
+  text-decoration: none;
+}
 .brand-logo {
   width: min(240px, 70vw);
   height: auto;
@@ -89,7 +137,18 @@ button, input, select, textarea {
   font-weight: 650;
   cursor: pointer;
   text-decoration: none;
+  -webkit-appearance: none;
+  appearance: none;
+  color: var(--ink);
   transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn:link,
+.btn:visited,
+.btn:hover,
+.btn:active,
+.btn:focus {
+  color: var(--ink);
+  text-decoration: none;
 }
 .btn:active { transform: translateY(1px); }
 .btn-primary {
@@ -97,14 +156,37 @@ button, input, select, textarea {
   color: #fff;
   box-shadow: 0 6px 16px rgba(221, 29, 33, 0.25);
 }
+.btn-primary:link,
+.btn-primary:visited,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus {
+  background: var(--red);
+  color: #fff;
+}
 .btn-primary:hover { background: #c4181c; }
 .btn-secondary {
+  background: var(--yellow);
+  color: var(--ink);
+}
+.btn-secondary:link,
+.btn-secondary:visited,
+.btn-secondary:hover,
+.btn-secondary:active,
+.btn-secondary:focus {
   background: var(--yellow);
   color: var(--ink);
 }
 .btn-ghost {
   background: transparent;
   border: 1px solid var(--line);
+  color: var(--ink);
+}
+.btn-ghost:link,
+.btn-ghost:visited,
+.btn-ghost:hover,
+.btn-ghost:active,
+.btn-ghost:focus {
   color: var(--ink);
 }
 .btn-block { width: 100%; }
@@ -120,23 +202,69 @@ button, input, select, textarea {
   .topic-grid { grid-template-columns: 1fr 1fr; }
 }
 .topic {
+  -webkit-appearance: none;
   appearance: none;
   text-align: left;
+  text-decoration: none;
   background: #fff;
+  color: var(--ink);
   border: 1.5px solid var(--line);
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 10px 12px;
   cursor: pointer;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
 }
-.topic:hover, .topic:focus-visible {
+.topic:link,
+.topic:visited,
+.topic:focus {
+  color: var(--ink);
+  text-decoration: none;
+}
+.topic:hover,
+.topic:focus-visible {
+  background: var(--red-20);
   border-color: var(--red);
+  color: var(--ink);
+  text-decoration: none;
   outline: none;
   box-shadow: 0 0 0 3px var(--red-20);
 }
-.topic.active {
+/* Pressed, before the selected class is applied (including /ca topic links). */
+.topic:active,
+.topic:active:hover {
+  background: var(--red);
   border-color: var(--red);
-  background: var(--red-20);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: none;
+}
+@media (min-width: 560px) {
+  .topic {
+    padding: 14px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
+.topic.active,
+.topic.active:link,
+.topic.active:visited,
+.topic.active:focus,
+.topic.active:active,
+.topic.active:hover,
+.topic.active:focus-visible {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+  text-decoration: none;
+}
+.topic.active:hover,
+.topic.active:focus-visible {
+  background: #c4181c;
+  border-color: #c4181c;
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--red-20);
 }
 
 .form-stack { display: grid; gap: 14px; }
@@ -215,7 +343,12 @@ button, input, select, textarea {
   position: sticky; top: 0; z-index: 5;
 }
 .admin-nav { display: flex; gap: 6px; flex-wrap: wrap; }
-.admin-nav a {
+.admin-nav a,
+.admin-nav a:link,
+.admin-nav a:visited,
+.admin-nav a:hover,
+.admin-nav a:active,
+.admin-nav a:focus {
   text-decoration: none; color: var(--ink); font-weight: 600;
   padding: 8px 12px; border-radius: 999px;
 }
@@ -243,7 +376,10 @@ table.data th { background: var(--yellow-20); font-size: .8rem; text-transform: 
 .survey-questions { display: grid; gap: 22px; margin: 8px 0 18px; }
 .survey-q-label { font-weight: 650; margin: 0 0 10px; }
 .yesno { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.yesno-btn { text-align: center; font-size: 1.05rem; padding: 16px; }
+.yesno-btn { text-align: center; }
+@media (min-width: 560px) {
+  .yesno-btn { font-size: 1.05rem; padding: 16px; }
+}
 .survey-message {
   font-size: 1.05rem;
   line-height: 1.55;
@@ -261,6 +397,7 @@ table.data th { background: var(--yellow-20); font-size: .8rem; text-transform: 
   padding: 4px;
 }
 .tenant-tab {
+  -webkit-appearance: none;
   appearance: none;
   border: none;
   background: transparent;
@@ -271,7 +408,19 @@ table.data th { background: var(--yellow-20); font-size: .8rem; text-transform: 
   cursor: pointer;
   color: var(--muted);
 }
-.tenant-tab.active {
+.tenant-tab:link,
+.tenant-tab:visited,
+.tenant-tab:hover,
+.tenant-tab:active,
+.tenant-tab:focus {
+  color: var(--muted);
+}
+.tenant-tab.active,
+.tenant-tab.active:link,
+.tenant-tab.active:visited,
+.tenant-tab.active:hover,
+.tenant-tab.active:active,
+.tenant-tab.active:focus {
   background: var(--yellow);
   color: var(--ink);
 }

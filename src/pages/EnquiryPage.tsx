@@ -20,13 +20,15 @@ export default function EnquiryPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [headerSubtext, setHeaderSubtext] = useState("We're here to help · CA");
 
   useEffect(() => {
     if (tenant === "coco") return;
-    api<{ sites: PublicSite[]; fields: FieldDef[] }>(tenant, "public-config")
+    api<{ sites: PublicSite[]; fields: FieldDef[]; headerSubtext?: string }>(tenant, "public-config")
       .then((data) => {
         setSites(data.sites || []);
         setFields(data.fields || []);
+        if (data.headerSubtext != null) setHeaderSubtext(data.headerSubtext);
         const initial: Record<string, string> = {};
         const preType = params.get("type");
         if (preType) initial.enquiry_type = preType;
@@ -98,7 +100,7 @@ export default function EnquiryPage() {
 
   return (
     <div className="page">
-      <BrandHeader subtitle="Enquiry form" compact />
+      <BrandHeader subtitle={headerSubtext} compact />
       <div className="steps" aria-label="Progress">
         <span className="step-pill">1. Topic</span>
         <span className="step-pill on">2. Details</span>

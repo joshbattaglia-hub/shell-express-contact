@@ -8,6 +8,12 @@ type Settings = {
   emailEnabled: boolean;
   phoneNumber?: string;
   contactEmail?: string;
+  headerSubtext?: string;
+};
+
+const DEFAULT_HEADER: Record<string, string> = {
+  ca: "We're here to help · CA",
+  coco: "CoCo feedback",
 };
 
 type EmailInfo = {
@@ -25,6 +31,7 @@ export default function SettingsPage() {
     emailEnabled: false,
     phoneNumber: "xxxxxxxxx",
     contactEmail: "jbattaglia@libertyretail.com.au",
+    headerSubtext: DEFAULT_HEADER.ca,
   });
   const [email, setEmail] = useState<EmailInfo | null>(null);
   const [msg, setMsg] = useState("");
@@ -39,6 +46,10 @@ export default function SettingsPage() {
           emailEnabled: !!d.settings.emailEnabled,
           phoneNumber: d.settings.phoneNumber || "xxxxxxxxx",
           contactEmail: d.settings.contactEmail || "jbattaglia@libertyretail.com.au",
+          headerSubtext:
+            d.settings.headerSubtext != null
+              ? d.settings.headerSubtext
+              : DEFAULT_HEADER[tenant] || "",
         });
         setEmail(d.email);
       })
@@ -76,6 +87,16 @@ export default function SettingsPage() {
             value={settings.fromName}
             onChange={(e) => setSettings({ ...settings, fromName: e.target.value })}
           />
+        </div>
+        <div className="field">
+          <label htmlFor="headerSubtext">Header subtext</label>
+          <input
+            id="headerSubtext"
+            value={settings.headerSubtext || ""}
+            onChange={(e) => setSettings({ ...settings, headerSubtext: e.target.value })}
+            placeholder={DEFAULT_HEADER[tenant] || ""}
+          />
+          <p className="hint">Shown under the logo on public {tenant === "coco" ? "CoCo" : "CA"} pages. Plain text only.</p>
         </div>
         <div className="field">
           <label htmlFor="ccAddress">CC address (optional)</label>

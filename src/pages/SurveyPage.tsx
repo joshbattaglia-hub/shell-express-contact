@@ -29,22 +29,24 @@ export default function SurveyPage() {
   const tenant = useTenant();
   const [survey, setSurvey] = useState<SurveyConfig | null>(null);
   const [sites, setSites] = useState<PublicSite[]>([]);
-  const [stepId, setStepId] = useState<string>("step1");
+  const [stepId, setStepId] = useState<string>("step2");
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [path, setPath] = useState<string[]>(["step1"]);
+  const [path, setPath] = useState<string[]>(["step2"]);
   const [siteId, setSiteId] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ reference: string } | null>(null);
   const [logged, setLogged] = useState(false);
+  const [headerSubtext, setHeaderSubtext] = useState("CoCo feedback");
 
   useEffect(() => {
     if (tenant !== "coco") return;
-    api<{ survey: SurveyConfig; sites: PublicSite[] }>(tenant, "public-config")
+    api<{ survey: SurveyConfig; sites: PublicSite[]; headerSubtext?: string }>(tenant, "public-config")
       .then((d) => {
         setSurvey(d.survey);
         setSites(d.sites || []);
-        const first = d.survey?.steps?.[0]?.id || "step1";
+        if (d.headerSubtext != null) setHeaderSubtext(d.headerSubtext);
+        const first = d.survey?.steps?.[0]?.id || "step2";
         setStepId(first);
         setPath([first]);
       })
@@ -128,7 +130,7 @@ export default function SurveyPage() {
     );
     return (
       <div className="page">
-        <BrandHeader subtitle="CoCo · Thank you" />
+        <BrandHeader subtitle={headerSubtext} />
         <section className="hero-card survey-card">
           <h1>{msgStep?.title || survey?.title || "Thank you"}</h1>
           <p className="survey-message">{msg}</p>
@@ -147,7 +149,7 @@ export default function SurveyPage() {
 
   return (
     <div className="page">
-      <BrandHeader subtitle="CoCo feedback" />
+      <BrandHeader subtitle={headerSubtext} />
       <section className="hero-card survey-card">
         {error ? <div className="error-banner" role="alert">{error}</div> : null}
         {!survey || !step ? (

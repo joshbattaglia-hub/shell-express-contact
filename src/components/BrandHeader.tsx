@@ -22,7 +22,9 @@ export default function BrandHeader({
           height={104}
         />
       </Link>
-      {subtitle ? <p className="brand-sub">{subtitle}</p> : null}
+      {subtitle ? (
+        <p className="brand-sub">{String(subtitle)}</p>
+      ) : null}
     </header>
   );
 }

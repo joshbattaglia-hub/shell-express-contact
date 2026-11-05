@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import BrandHeader from "../components/BrandHeader";
+import { api } from "../lib/api";
 import { useTenant, tenantPath } from "../hooks/useTenant";
 
 const TOPICS = [
@@ -11,8 +13,20 @@ const TOPICS = [
   "Other",
 ];
 
+const DEFAULT_SUB = "We're here to help · CA";
+
 export default function HomePage() {
   const tenant = useTenant();
+  const [headerSubtext, setHeaderSubtext] = useState(DEFAULT_SUB);
+
+  useEffect(() => {
+    if (tenant === "coco") return;
+    api<{ headerSubtext?: string }>(tenant, "public-config")
+      .then((d) => {
+        if (d.headerSubtext != null) setHeaderSubtext(d.headerSubtext);
+      })
+      .catch(() => {});
+  }, [tenant]);
 
   if (tenant === "coco") {
     return <Navigate to={tenantPath("coco", "/survey")} replace />;
@@ -20,7 +34,7 @@ export default function HomePage() {
 
   return (
     <div className="page">
-      <BrandHeader subtitle="We're here to help · CA" />
+      <BrandHeader subtitle={headerSubtext} />
       <section className="hero-card">
         <h1>Contact Shell Express</h1>
         <p>

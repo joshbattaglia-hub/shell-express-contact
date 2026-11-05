@@ -28,6 +28,7 @@ export async function handler(event) {
         emailEnabled: body.emailEnabled != null ? !!body.emailEnabled : prev.emailEnabled,
         phoneNumber: body.phoneNumber != null ? String(body.phoneNumber).trim() : prev.phoneNumber,
         contactEmail: body.contactEmail != null ? String(body.contactEmail).trim() : prev.contactEmail,
+        headerSubtext: body.headerSubtext != null ? String(body.headerSubtext) : prev.headerSubtext,
       });
       return json(200, { settings: next, email: emailStatus(), tenant }, origin);
     }

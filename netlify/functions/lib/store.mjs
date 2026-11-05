@@ -62,42 +62,18 @@ export const DEFAULT_FIELDS_CA = [
 ];
 
 /** Default CoCo survey config (editable in admin). */
+/** CoCo survey v3: opens on feedback topic, then contact message. Old responses kept. */
+export const SURVEY_COCO_REVISION = 3;
 export const DEFAULT_SURVEY_COCO = {
   title: "How did we do today?",
   sitePickerEnabled: false,
   phoneNumber: "xxxxxxxxx",
   contactEmail: "jbattaglia@libertyretail.com.au",
+  revision: SURVEY_COCO_REVISION,
   steps: [
-    {
-      id: "step1",
-      title: "How did we do today?",
-      questions: [
-        {
-          id: "visit_again",
-          label: "Will you visit Shell Express again?",
-          type: "yesno",
-          required: true,
-        },
-        {
-          id: "want_contact",
-          label: "Do you have any other feedback you would like to be contacted about?",
-          type: "yesno",
-          required: true,
-        },
-      ],
-      next: {
-        type: "branch",
-        // if want_contact === Yes → step2, else → thanks
-        rules: [
-          { when: { questionId: "want_contact", equals: "Yes" }, goto: "step2" },
-        ],
-        default: "thanks",
-      },
-    },
     {
       id: "step2",
       title: "How did we do today?",
-      showIf: { questionId: "want_contact", equals: "Yes" },
       questions: [
         {
           id: "feedback_topic",
@@ -121,17 +97,14 @@ export const DEFAULT_SURVEY_COCO = {
       message:
         "Please call the Shell Express customer service team on {{phone}} or email {{email}} and we will contact you as soon as possible.",
       next: { type: "finish" },
-      showIf: { questionId: "want_contact", equals: "Yes" },
-    },
-    {
-      id: "thanks",
-      title: "How did we do today?",
-      kind: "message",
-      message: "Thank you for your feedback.",
-      next: { type: "finish" },
     },
   ],
   updatedAt: null,
+};
+
+export const DEFAULT_HEADER_SUBTEXT = {
+  ca: "We're here to help · CA",
+  coco: "CoCo feedback",
 };
 
 export const DEFAULT_SETTINGS = {
@@ -140,6 +113,7 @@ export const DEFAULT_SETTINGS = {
   emailEnabled: false,
   phoneNumber: "xxxxxxxxx",
   contactEmail: "jbattaglia@libertyretail.com.au",
+  headerSubtext: "",
   updatedAt: null,
 };
 
@@ -414,12 +388,25 @@ export async function saveFields(tenant, fields, seeded = true) {
 export async function loadSettings(tenant) {
   const store = getAppStore();
   const raw = await store.get(k(tenant, "app-settings"), { type: "json" });
-  return { ...DEFAULT_SETTINGS, ...(raw || {}) };
+  const base = {
+    ...DEFAULT_SETTINGS,
+    headerSubtext: DEFAULT_HEADER_SUBTEXT[tenant] || "",
+  };
+  const merged = { ...base, ...(raw || {}) };
+  if (raw == null || raw.headerSubtext == null) {
+    merged.headerSubtext = DEFAULT_HEADER_SUBTEXT[tenant] || "";
+  }
+  return merged;
 }
 
 export async function saveSettings(tenant, settings) {
   const store = getAppStore();
-  const next = { ...DEFAULT_SETTINGS, ...settings, updatedAt: melbourneNowIso() };
+  const next = {
+    ...DEFAULT_SETTINGS,
+    headerSubtext: DEFAULT_HEADER_SUBTEXT[tenant] || "",
+    ...settings,
+    updatedAt: melbourneNowIso(),
+  };
   await store.setJSON(k(tenant, "app-settings"), next);
   return next;
 }
@@ -428,12 +415,47 @@ export async function loadSurvey(tenant) {
   const store = getAppStore();
   const raw = await store.get(k(tenant, "survey-config"), { type: "json" });
   if (!raw) return { ...DEFAULT_SURVEY_COCO };
+  // Force structure upgrade when revision lags (preserves phone/email/title/options where possible)
+  if (tenant === "coco" && Number(raw.revision || 0) < SURVEY_COCO_REVISION) {
+    return migrateCocoSurvey(raw);
+  }
   return { ...DEFAULT_SURVEY_COCO, ...raw };
+}
+
+function migrateCocoSurvey(raw) {
+  const def = DEFAULT_SURVEY_COCO;
+  const oldSteps = Array.isArray(raw.steps) ? raw.steps : [];
+  const oldTopic = oldSteps
+    .flatMap((s) => s.questions || [])
+    .find((q) => q.id === "feedback_topic");
+  const oldContact = oldSteps.find((s) => s.id === "contact");
+  const steps = structuredClone(def.steps);
+  if (oldTopic?.options?.length) {
+    steps[0].questions[0].options = oldTopic.options;
+    if (oldTopic.label) steps[0].questions[0].label = oldTopic.label;
+  }
+  if (oldContact?.message) steps[1].message = oldContact.message;
+  if (oldContact?.title) steps[1].title = oldContact.title;
+  if (oldSteps[0]?.title && steps[0]) steps[0].title = raw.title || oldSteps.find((s) => s.id === "step2")?.title || steps[0].title;
+  return {
+    ...def,
+    title: raw.title || def.title,
+    sitePickerEnabled: !!raw.sitePickerEnabled,
+    phoneNumber: raw.phoneNumber || def.phoneNumber,
+    contactEmail: raw.contactEmail || def.contactEmail,
+    steps,
+    revision: SURVEY_COCO_REVISION,
+    updatedAt: raw.updatedAt || null,
+  };
 }
 
 export async function saveSurvey(tenant, survey) {
   const store = getAppStore();
-  const next = { ...survey, updatedAt: melbourneNowIso() };
+  const next = {
+    ...survey,
+    revision: tenant === "coco" ? SURVEY_COCO_REVISION : survey.revision,
+    updatedAt: melbourneNowIso(),
+  };
   await store.setJSON(k(tenant, "survey-config"), next);
   return next;
 }
@@ -473,7 +495,10 @@ export async function ensureSeeded(tenant) {
 
   const settings = await loadSettings(tenant);
   if (!settings.updatedAt) {
-    await saveSettings(tenant, DEFAULT_SETTINGS);
+    await saveSettings(tenant, {
+      ...DEFAULT_SETTINGS,
+      headerSubtext: DEFAULT_HEADER_SUBTEXT[tenant] || "",
+    });
   }
 
   if (tenant === "coco") {
@@ -481,6 +506,9 @@ export async function ensureSeeded(tenant) {
     const survey = await store.get(k("coco", "survey-config"), { type: "json" });
     if (!survey) {
       await saveSurvey("coco", DEFAULT_SURVEY_COCO);
+    } else if (Number(survey.revision || 0) < SURVEY_COCO_REVISION) {
+      const migrated = migrateCocoSurvey(survey);
+      await saveSurvey("coco", migrated);
     }
   }
 

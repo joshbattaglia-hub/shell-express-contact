@@ -15,13 +15,16 @@ export async function handler(event) {
       .map((s) => ({ id: s.id, name: s.name, address: s.address || "" }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
+    const settings = await loadSettings(tenant);
+    const headerSubtext = String(settings.headerSubtext ?? "");
+
     if (tenant === "coco") {
       const survey = await loadSurvey(tenant);
-      const settings = await loadSettings(tenant);
       return json(200, {
         tenant,
         mode: "survey",
         sites: publicSites,
+        headerSubtext,
         survey: {
           title: survey.title,
           sitePickerEnabled: !!survey.sitePickerEnabled,
@@ -38,7 +41,7 @@ export async function handler(event) {
         id: f.id, label: f.label, type: f.type, required: !!f.required,
         options: f.options || [], accept: f.accept || null, maxBytes: f.maxBytes || null, help: f.help || null,
       }));
-    return json(200, { tenant, mode: "form", sites: publicSites, fields: publicFields }, origin);
+    return json(200, { tenant, mode: "form", sites: publicSites, fields: publicFields, headerSubtext }, origin);
   } catch (err) {
     console.error(err);
     return json(500, { error: err.message || "Server error" }, origin);

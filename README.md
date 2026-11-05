@@ -88,7 +88,15 @@ npm run build
 netlify deploy --prod   # or link site first
 ```
 
-Required env: `ADMIN_PASSWORD`. Optional: `SESSION_SECRET`, email vars above.
+Required env:
+
+| Var | Purpose |
+|-----|---------|
+| `ADMIN_PASSWORD` | Admin login at `/admin` (set in Netlify UI → Project configuration → Environment variables) |
+| `SESSION_SECRET` | Signs the admin cookie (optional; falls back to `ADMIN_PASSWORD`) |
+| `BLOBS_SITE_ID` / `BLOBS_TOKEN` | Needed for Netlify Blobs when deploy is CLI-based (already set on this preview) |
+
+Optional email vars as above.
 
 ## Seeded sites
 

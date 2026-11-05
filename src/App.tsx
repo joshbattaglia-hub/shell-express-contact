@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useParams, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate, useParams, Outlet, useSearchParams } from "react-router-dom";
 import ChooserPage from "./pages/ChooserPage";
 import HomePage from "./pages/HomePage";
 import EnquiryPage from "./pages/EnquiryPage";
@@ -19,6 +19,21 @@ function TenantShell() {
   return <Outlet context={{ tenant: tenant as Tenant }} />;
 }
 
+function LegacyTenantAdminRedirect() {
+  const { tenant } = useParams();
+  const t = tenant === "coco" ? "coco" : "ca";
+  return <Navigate to={`/admin?t=${t}`} replace />;
+}
+
+function LegacyTenantAdminAppRedirect() {
+  const { tenant } = useParams();
+  const [params] = useSearchParams();
+  const t = tenant === "coco" ? "coco" : "ca";
+  // Preserve subpath via wildcard is hard here — send to enquiries with tenant tab
+  const rest = params.toString();
+  return <Navigate to={`/admin/app/enquiries?t=${t}${rest ? `&${rest}` : ""}`} replace />;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -26,23 +41,25 @@ export default function App() {
 
       <Route path="/enquire" element={<Navigate to="/ca/enquire" replace />} />
       <Route path="/confirm" element={<Navigate to="/ca/confirm" replace />} />
-      <Route path="/admin" element={<Navigate to="/ca/admin" replace />} />
-      <Route path="/admin/app/*" element={<Navigate to="/ca/admin/app/enquiries" replace />} />
+
+      {/* Unified admin */}
+      <Route path="/admin" element={<AdminLoginPage />} />
+      <Route path="/admin/app" element={<AdminLayout />}>
+        <Route index element={<Navigate to="enquiries" replace />} />
+        <Route path="enquiries" element={<AdminEnquiries />} />
+        <Route path="sites" element={<AdminSites />} />
+        <Route path="fields" element={<AdminFields />} />
+        <Route path="survey" element={<AdminSurvey />} />
+        <Route path="settings" element={<AdminSettings />} />
+      </Route>
 
       <Route path="/:tenant" element={<TenantShell />}>
         <Route index element={<HomePage />} />
         <Route path="enquire" element={<EnquiryPage />} />
         <Route path="survey" element={<SurveyPage />} />
         <Route path="confirm" element={<ConfirmPage />} />
-        <Route path="admin" element={<AdminLoginPage />} />
-        <Route path="admin/app" element={<AdminLayout />}>
-          <Route index element={<Navigate to="enquiries" replace />} />
-          <Route path="enquiries" element={<AdminEnquiries />} />
-          <Route path="sites" element={<AdminSites />} />
-          <Route path="fields" element={<AdminFields />} />
-          <Route path="survey" element={<AdminSurvey />} />
-          <Route path="settings" element={<AdminSettings />} />
-        </Route>
+        <Route path="admin" element={<LegacyTenantAdminRedirect />} />
+        <Route path="admin/app/*" element={<LegacyTenantAdminAppRedirect />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

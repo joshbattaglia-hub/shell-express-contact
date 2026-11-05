@@ -35,7 +35,8 @@ export default function FieldsPage() {
 
   useEffect(() => {
     load().catch((e) => setError(e.message));
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenant]);
 
   function startEdit(f: FieldDef) {
     setEditId(f.id);

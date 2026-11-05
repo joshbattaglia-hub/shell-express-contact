@@ -116,6 +116,89 @@
   status = 200
   force = true
 
+# Custom-domain aliases → apex primary (HTTPS). netlify.app hostname stays reachable.
+[[redirects]]
+  from = "https://www.expresshelp.com.au/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.expresshelp.com.au"
+  to = "https://expresshelp.com.au/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://expresshelp.au/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://expresshelp.au"
+  to = "https://expresshelp.com.au/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.expresshelp.au/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.expresshelp.au"
+  to = "https://expresshelp.com.au/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://expresshelp.site/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://expresshelp.site"
+  to = "https://expresshelp.com.au/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.expresshelp.site/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.expresshelp.site"
+  to = "https://expresshelp.com.au/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.expresshelp.com.au/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://expresshelp.com.au/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://expresshelp.au/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.expresshelp.au/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://expresshelp.site/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.expresshelp.site/*"
+  to = "https://expresshelp.com.au/:splat"
+  status = 301
+  force = true
+
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

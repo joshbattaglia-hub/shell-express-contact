@@ -41,9 +41,7 @@ export default function HomePage() {
         </div>
         <p className="muted" style={{ marginTop: 18, marginBottom: 0, fontSize: ".9rem" }}>
           Or{" "}
-          <Link to={tenantPath(tenant, "/enquire")}>open the full enquiry form</Link>
-          {" · "}
-          <Link to="/">Switch destination</Link>
+          <Link to={tenantPath(tenant, "/enquire")}>open the full enquiry form</Link>.
         </p>
       </section>
     </div>

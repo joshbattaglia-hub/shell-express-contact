@@ -220,15 +220,16 @@ export function json(status, body, origin = "*", extraHeaders = {}) {
 }
 
 function sessionSecret() {
-  return process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD_CA || process.env.ADMIN_PASSWORD || "shell-express-dev";
+  return process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || "shell-express-dev";
 }
 
-function cookieName(tenant) {
-  return `sec_session_${tenant}`;
+/** Single shared admin cookie (one login covers CA + CoCo data scopes). */
+function cookieName() {
+  return "sec_session";
 }
 
-export function createSessionCookie(tenant) {
-  const payload = { role: "admin", tenant, iat: Date.now() };
+export function createSessionCookie(_tenant) {
+  const payload = { role: "admin", scope: "all", iat: Date.now() };
   const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const sig = createHmac("sha256", sessionSecret()).update(data).digest("base64url");
   const token = `${data}.${sig}`;
@@ -238,7 +239,7 @@ export function createSessionCookie(tenant) {
     !!process.env.CONTEXT ||
     !!process.env.AWS_LAMBDA_FUNCTION_NAME;
   const parts = [
-    `${cookieName(tenant)}=${token}`,
+    `${cookieName()}=${token}`,
     "Path=/",
     "HttpOnly",
     "SameSite=Lax",
@@ -248,8 +249,8 @@ export function createSessionCookie(tenant) {
   return parts.join("; ");
 }
 
-export function clearSessionCookie(tenant) {
-  return `${cookieName(tenant)}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+export function clearSessionCookie(_tenant) {
+  return `${cookieName()}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 }
 
 export function parseCookies(header = "") {
@@ -264,9 +265,14 @@ export function parseCookies(header = "") {
   return out;
 }
 
-export function verifySession(event, tenant) {
+export function verifySession(event, _tenant) {
   const cookies = parseCookies(event.headers.cookie || event.headers.Cookie || "");
-  const token = cookies[cookieName(tenant)];
+  // Prefer shared cookie; also accept legacy per-tenant cookies during transition
+  const token =
+    cookies[cookieName()] ||
+    cookies[`sec_session_${_tenant}`] ||
+    cookies.sec_session_ca ||
+    cookies.sec_session_coco;
   if (!token) return false;
   const [data, sig] = token.split(".");
   if (!data || !sig) return false;
@@ -281,7 +287,7 @@ export function verifySession(event, tenant) {
   }
   try {
     const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf8"));
-    return payload?.role === "admin" && payload?.tenant === tenant;
+    return payload?.role === "admin";
   } catch {
     return false;
   }
@@ -296,10 +302,9 @@ export function adminPasswordEnvKey(tenant) {
   return `ADMIN_PASSWORD_${String(tenant).toUpperCase()}`;
 }
 
-export function checkAdminPassword(tenant, password) {
-  let expected = process.env[adminPasswordEnvKey(tenant)] || "";
-  // ca also accepts legacy ADMIN_PASSWORD
-  if (!expected && tenant === "ca") expected = process.env.ADMIN_PASSWORD || "";
+export function checkAdminPassword(_tenant, password) {
+  // Single shared admin password. Tenant-specific env vars are unused.
+  const expected = process.env.ADMIN_PASSWORD || "";
   if (!expected || !password) return false;
   const a = Buffer.from(String(password));
   const b = Buffer.from(String(expected));

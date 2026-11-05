@@ -25,7 +25,8 @@ export default function SitesPage() {
 
   useEffect(() => {
     load().catch((e) => setError(e.message));
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenant]);
 
   function startEdit(s: SiteRecord) {
     setEditId(s.id);

@@ -32,7 +32,7 @@ export default function EnquiriesPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  }, [filter, tenant]);
 
   async function setStatus(id: string, status: string) {
     const data = await api<{ enquiry: Enquiry }>(tenant, "enquiries", {

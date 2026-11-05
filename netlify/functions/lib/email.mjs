@@ -24,9 +24,17 @@ export function emailStatus() {
   };
 }
 
+function resolveFromAddress(from, fromName) {
+  const raw = String(from || "").trim();
+  // EMAIL_FROM may already be "Name <email@domain>" — use as-is
+  if (/<[^>]+@[^>]+>/.test(raw)) return raw;
+  if (fromName && raw) return `${fromName} <${raw}>`;
+  return raw;
+}
+
 async function sendResend({ to, cc, from, fromName, subject, text, html }) {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromAddr = fromName ? `${fromName} <${from}>` : from;
+  const fromAddr = resolveFromAddress(from, fromName);
   const body = {
     from: fromAddr,
     to: Array.isArray(to) ? to : [to],

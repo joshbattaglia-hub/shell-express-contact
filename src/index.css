@@ -252,3 +252,26 @@ table.data th { background: var(--yellow-20); font-size: .8rem; text-transform: 
   white-space: pre-wrap;
 }
 .survey-actions { margin-top: 8px; }
+
+.tenant-switch {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--yellow-20);
+  border-radius: 999px;
+  padding: 4px;
+}
+.tenant-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 650;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.tenant-tab.active {
+  background: var(--yellow);
+  color: var(--ink);
+}

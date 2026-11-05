@@ -137,7 +137,7 @@ export default function SurveyPage() {
               {done.reference}
             </div>
           ) : null}
-          <Link className="btn btn-secondary" to="/">
+          <Link className="btn btn-secondary" to="/coco/survey">
             Done
           </Link>
         </section>
@@ -243,11 +243,6 @@ export default function SurveyPage() {
             </div>
           </>
         )}
-        <p className="muted" style={{ marginTop: 18, marginBottom: 0, fontSize: ".85rem", textAlign: "center" }}>
-          <Link to="/">Switch destination</Link>
-          {" · "}
-          <Link to={tenantPath("coco", "/admin")}>Admin</Link>
-        </p>
       </section>
     </div>
   );

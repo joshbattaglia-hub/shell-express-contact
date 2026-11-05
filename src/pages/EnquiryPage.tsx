@@ -1,11 +1,14 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import BrandHeader from "../components/BrandHeader";
 import { api, type FieldDef, type PublicSite } from "../lib/api";
+import { useTenant, tenantPath } from "../hooks/useTenant";
 
 export default function EnquiryPage() {
+  const tenant = useTenant();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  if (tenant === "coco") return <Navigate to={tenantPath("coco", "/survey")} replace />;
   const [sites, setSites] = useState<PublicSite[]>([]);
   const [fields, setFields] = useState<FieldDef[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -20,7 +23,7 @@ export default function EnquiryPage() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    api<{ sites: PublicSite[]; fields: FieldDef[] }>("public-config")
+    api<{ sites: PublicSite[]; fields: FieldDef[] }>(tenant, "public-config")
       .then((data) => {
         setSites(data.sites || []);
         setFields(data.fields || []);
@@ -31,7 +34,7 @@ export default function EnquiryPage() {
         setLoaded(true);
       })
       .catch((e) => setError(e.message || "Failed to load form"));
-  }, [params]);
+  }, [params, tenant]);
 
   const sortedFields = useMemo(
     () => [...fields].sort((a, b) => (a.order || 0) - (b.order || 0)),
@@ -71,7 +74,7 @@ export default function EnquiryPage() {
     setError("");
     setBusy(true);
     try {
-      const res = await api<{ reference: string; id: string }>("submit", {
+      const res = await api<{ reference: string; id: string }>(tenant, "submit", {
         method: "POST",
         body: JSON.stringify({
           values,
@@ -79,7 +82,7 @@ export default function EnquiryPage() {
           website: hp,
         }),
       });
-      navigate(`/confirm?ref=${encodeURIComponent(res.reference)}`, {
+      navigate(`${tenantPath(tenant, "/confirm")}?ref=${encodeURIComponent(res.reference)}`, {
         state: { reference: res.reference },
       });
     } catch (err) {
@@ -233,7 +236,7 @@ export default function EnquiryPage() {
           {busy ? "Sending…" : "Submit enquiry"}
         </button>
         <p className="muted" style={{ margin: 0, fontSize: ".85rem", textAlign: "center" }}>
-          <Link to="/">Back to topics</Link>
+          <Link to={tenantPath(tenant)}>Back to topics</Link>
         </p>
       </form>
     </div>

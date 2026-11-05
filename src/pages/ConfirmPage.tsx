@@ -1,7 +1,9 @@
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import BrandHeader from "../components/BrandHeader";
+import { useTenant, tenantPath } from "../hooks/useTenant";
 
 export default function ConfirmPage() {
+  const tenant = useTenant();
   const [params] = useSearchParams();
   const location = useLocation();
   const reference =
@@ -30,7 +32,7 @@ export default function ConfirmPage() {
         ) : (
           <p className="muted">Your reference was shown after submit.</p>
         )}
-        <Link className="btn btn-secondary" to="/">
+        <Link className="btn btn-secondary" to={tenantPath(tenant)}>
           Back to home
         </Link>
       </section>

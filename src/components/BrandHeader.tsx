@@ -1,15 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 export default function BrandHeader({
   subtitle,
   compact,
+  homeTo,
 }: {
   subtitle?: string;
   compact?: boolean;
+  homeTo?: string;
 }) {
+  const { tenant } = useParams();
+  const to = homeTo || (tenant ? `/${tenant}` : "/");
   return (
     <header className={`brand-header${compact ? " compact" : ""}`}>
-      <Link to="/" className="brand-lockup" aria-label="Shell Express home">
+      <Link to={to} className="brand-lockup" aria-label="Shell Express home">
         <img
           src="/brand/logo-on-light.png"
           alt="Shell Express"

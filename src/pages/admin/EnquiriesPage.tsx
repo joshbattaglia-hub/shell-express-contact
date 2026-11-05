@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, type Enquiry } from "../../lib/api";
+import { useTenant } from "../../hooks/useTenant";
 
 const STATUS_LABEL: Record<string, string> = {
   new: "New",
@@ -8,6 +9,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function EnquiriesPage() {
+  const tenant = useTenant();
   const [items, setItems] = useState<Enquiry[]>([]);
   const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState<Enquiry | null>(null);
@@ -18,7 +20,7 @@ export default function EnquiriesPage() {
     setBusy(true);
     try {
       const q = filter ? `?status=${encodeURIComponent(filter)}` : "";
-      const data = await api<{ enquiries: Enquiry[] }>(`enquiries${q}`);
+      const data = await api<{ enquiries: Enquiry[] }>(tenant, `enquiries${q}`);
       setItems(data.enquiries || []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
@@ -33,7 +35,7 @@ export default function EnquiriesPage() {
   }, [filter]);
 
   async function setStatus(id: string, status: string) {
-    const data = await api<{ enquiry: Enquiry }>("enquiries", {
+    const data = await api<{ enquiry: Enquiry }>(tenant, "enquiries", {
       method: "PATCH",
       body: JSON.stringify({ id, status }),
     });
@@ -42,7 +44,7 @@ export default function EnquiriesPage() {
   }
 
   async function exportCsv() {
-    const res = await fetch("/api/enquiries?format=csv", { credentials: "include" });
+    const res = await fetch(`/api/${tenant}/enquiries?format=csv`, { credentials: "include" });
     if (!res.ok) throw new Error("Export failed");
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -125,12 +127,26 @@ export default function EnquiriesPage() {
           </div>
           <div className="grid-2">
             <div className="stack-sm">
-              <div><strong>Site:</strong> {selected.siteName}</div>
-              <div><strong>Type:</strong> {selected.values?.enquiry_type}</div>
-              <div><strong>Name:</strong> {selected.values?.name}</div>
-              <div><strong>Email:</strong> {selected.values?.email}</div>
-              <div><strong>Phone:</strong> {selected.values?.phone || "—"}</div>
-              <div><strong>Visit:</strong> {selected.values?.visit_at || "—"}</div>
+              <div><strong>Site:</strong> {selected.siteName || "—"}</div>
+              {selected.kind === "survey" ? (
+                <>
+                  <div><strong>Kind:</strong> Survey</div>
+                  {Object.entries(selected.values || {}).map(([k, v]) => (
+                    <div key={k}><strong>{k}:</strong> {String(v)}</div>
+                  ))}
+                  {selected.path?.length ? (
+                    <div><strong>Path:</strong> {selected.path.join(" → ")}</div>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <div><strong>Type:</strong> {selected.values?.enquiry_type}</div>
+                  <div><strong>Name:</strong> {selected.values?.name}</div>
+                  <div><strong>Email:</strong> {selected.values?.email}</div>
+                  <div><strong>Phone:</strong> {selected.values?.phone || "—"}</div>
+                  <div><strong>Visit:</strong> {selected.values?.visit_at || "—"}</div>
+                </>
+              )}
             </div>
             <div className="stack-sm">
               <div>
@@ -162,7 +178,7 @@ export default function EnquiriesPage() {
                 <div>
                   <strong>Attachment</strong>
                   <p style={{ margin: "4px 0 0" }}>
-                    <a href={`/api/attachment?id=${encodeURIComponent(selected.id)}`} target="_blank" rel="noreferrer">
+                    <a href={`/api/${tenant}/attachment?id=${encodeURIComponent(selected.id)}`} target="_blank" rel="noreferrer">
                       {selected.attachment.filename}
                     </a>
                   </p>
@@ -170,10 +186,12 @@ export default function EnquiriesPage() {
               ) : null}
             </div>
           </div>
-          <div style={{ marginTop: 12 }}>
-            <strong>Message</strong>
-            <p style={{ whiteSpace: "pre-wrap" }}>{selected.values?.message}</p>
-          </div>
+          {selected.kind !== "survey" && selected.values?.message ? (
+            <div style={{ marginTop: 12 }}>
+              <strong>Message</strong>
+              <p style={{ whiteSpace: "pre-wrap" }}>{selected.values?.message}</p>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

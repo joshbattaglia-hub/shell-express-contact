@@ -7,10 +7,114 @@
   node_bundler = "esbuild"
   directory = "netlify/functions"
 
+# Tenant-scoped API
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from = "/api/:tenant/public-config"
+  to = "/.netlify/functions/public-config?tenant=:tenant"
   status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/submit"
+  to = "/.netlify/functions/submit?tenant=:tenant"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/admin-login"
+  to = "/.netlify/functions/admin-login?tenant=:tenant"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/admin-logout"
+  to = "/.netlify/functions/admin-logout?tenant=:tenant"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/admin-session"
+  to = "/.netlify/functions/admin-session?tenant=:tenant"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/sites"
+  to = "/.netlify/functions/sites?tenant=:tenant"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/fields"
+  to = "/.netlify/functions/fields?tenant=:tenant"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/enquiries"
+  to = "/.netlify/functions/enquiries?tenant=:tenant"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/settings"
+  to = "/.netlify/functions/settings?tenant=:tenant"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/survey"
+  to = "/.netlify/functions/survey?tenant=:tenant"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/:tenant/attachment"
+  to = "/.netlify/functions/attachment?tenant=:tenant"
+  status = 200
+  force = true
+
+# Legacy /api/* → ca
+[[redirects]]
+  from = "/api/public-config"
+  to = "/.netlify/functions/public-config?tenant=ca"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/submit"
+  to = "/.netlify/functions/submit?tenant=ca"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/admin-login"
+  to = "/.netlify/functions/admin-login?tenant=ca"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/admin-logout"
+  to = "/.netlify/functions/admin-logout?tenant=ca"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/admin-session"
+  to = "/.netlify/functions/admin-session?tenant=ca"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/sites"
+  to = "/.netlify/functions/sites?tenant=ca"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/fields"
+  to = "/.netlify/functions/fields?tenant=ca"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/enquiries"
+  to = "/.netlify/functions/enquiries?tenant=ca"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/settings"
+  to = "/.netlify/functions/settings?tenant=ca"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/attachment"
+  to = "/.netlify/functions/attachment?tenant=ca"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"

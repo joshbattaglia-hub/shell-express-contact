@@ -1,10 +1,13 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { api } from "../../lib/api";
+import { useTenant } from "../../hooks/useTenant";
 
 type Settings = {
   fromName: string;
   ccAddress: string;
   emailEnabled: boolean;
+  phoneNumber?: string;
+  contactEmail?: string;
 };
 
 type EmailInfo = {
@@ -15,30 +18,39 @@ type EmailInfo = {
 };
 
 export default function SettingsPage() {
+  const tenant = useTenant();
   const [settings, setSettings] = useState<Settings>({
     fromName: "Shell Express Contact",
     ccAddress: "",
     emailEnabled: false,
+    phoneNumber: "xxxxxxxxx",
+    contactEmail: "jbattaglia@libertyretail.com.au",
   });
   const [email, setEmail] = useState<EmailInfo | null>(null);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api<{ settings: Settings; email: EmailInfo }>("settings")
+    api<{ settings: Settings; email: EmailInfo }>(tenant, "settings")
       .then((d) => {
-        setSettings(d.settings);
+        setSettings({
+          fromName: d.settings.fromName || "Shell Express Contact",
+          ccAddress: d.settings.ccAddress || "",
+          emailEnabled: !!d.settings.emailEnabled,
+          phoneNumber: d.settings.phoneNumber || "xxxxxxxxx",
+          contactEmail: d.settings.contactEmail || "jbattaglia@libertyretail.com.au",
+        });
         setEmail(d.email);
       })
       .catch((e) => setError(e.message));
-  }, []);
+  }, [tenant]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setMsg("");
     setError("");
     try {
-      const d = await api<{ settings: Settings; email: EmailInfo }>("settings", {
+      const d = await api<{ settings: Settings; email: EmailInfo }>(tenant, "settings", {
         method: "PATCH",
         body: JSON.stringify(settings),
       });
@@ -74,6 +86,27 @@ export default function SettingsPage() {
             onChange={(e) => setSettings({ ...settings, ccAddress: e.target.value })}
           />
         </div>
+        {tenant === "coco" ? (
+          <>
+            <div className="field">
+              <label htmlFor="phoneNumber">Public phone number</label>
+              <input
+                id="phoneNumber"
+                value={settings.phoneNumber || ""}
+                onChange={(e) => setSettings({ ...settings, phoneNumber: e.target.value })}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="contactEmail">Public contact email</label>
+              <input
+                id="contactEmail"
+                type="email"
+                value={settings.contactEmail || ""}
+                onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+              />
+            </div>
+          </>
+        ) : null}
         <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <input
             type="checkbox"

@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import BrandHeader from "../components/BrandHeader";
+import { useTenant, tenantPath } from "../hooks/useTenant";
 
 const TOPICS = [
   "Feedback",
@@ -11,9 +12,15 @@ const TOPICS = [
 ];
 
 export default function HomePage() {
+  const tenant = useTenant();
+
+  if (tenant === "coco") {
+    return <Navigate to={tenantPath("coco", "/survey")} replace />;
+  }
+
   return (
     <div className="page">
-      <BrandHeader subtitle="We're here to help" />
+      <BrandHeader subtitle="We're here to help · CA" />
       <section className="hero-card">
         <h1>Contact Shell Express</h1>
         <p>
@@ -26,7 +33,7 @@ export default function HomePage() {
               key={t}
               className="topic"
               role="listitem"
-              to={`/enquire?type=${encodeURIComponent(t)}`}
+              to={`${tenantPath(tenant, "/enquire")}?type=${encodeURIComponent(t)}`}
             >
               {t}
             </Link>
@@ -34,7 +41,9 @@ export default function HomePage() {
         </div>
         <p className="muted" style={{ marginTop: 18, marginBottom: 0, fontSize: ".9rem" }}>
           Or{" "}
-          <Link to="/enquire">open the full enquiry form</Link>.
+          <Link to={tenantPath(tenant, "/enquire")}>open the full enquiry form</Link>
+          {" · "}
+          <Link to="/">Switch destination</Link>
         </p>
       </section>
     </div>

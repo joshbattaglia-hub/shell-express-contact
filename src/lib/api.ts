@@ -1,8 +1,11 @@
+export type Tenant = "ca" | "coco";
+
 export async function api<T = unknown>(
+  tenant: Tenant,
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const res = await fetch(`/api/${path}`, {
+  const res = await fetch(`/api/${tenant}/${path}`, {
     credentials: "include",
     ...options,
     headers: {
@@ -48,10 +51,12 @@ export type SiteRecord = {
 export type Enquiry = {
   id: string;
   reference: string;
-  siteId: string;
-  siteName: string;
+  siteId: string | null;
+  siteName: string | null;
   status: "new" | "in_progress" | "closed";
+  kind?: string;
   values: Record<string, string>;
+  path?: string[];
   attachment?: { filename: string; contentType: string; byteSize: number } | null;
   createdAt: string;
   updatedAt: string;
@@ -62,4 +67,33 @@ export type Enquiry = {
     provider?: string;
   } | null;
   adminNote?: string;
+};
+
+export type SurveyQuestion = {
+  id: string;
+  label: string;
+  type: "yesno" | "single" | string;
+  required?: boolean;
+  options?: string[];
+};
+export type SurveyStep = {
+  id: string;
+  title?: string;
+  kind?: "message" | string;
+  message?: string;
+  questions?: SurveyQuestion[];
+  showIf?: { questionId: string; equals: string };
+  next?: {
+    type: string;
+    goto?: string;
+    default?: string;
+    rules?: { when: { questionId: string; equals: string }; goto: string }[];
+  };
+};
+export type SurveyConfig = {
+  title: string;
+  sitePickerEnabled: boolean;
+  phoneNumber: string;
+  contactEmail: string;
+  steps: SurveyStep[];
 };

@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { api, type FieldDef } from "../../lib/api";
+import { useTenant } from "../../hooks/useTenant";
 
 const TYPES = [
   "text",
@@ -15,6 +16,7 @@ const TYPES = [
 ];
 
 export default function FieldsPage() {
+  const tenant = useTenant();
   const [fields, setFields] = useState<FieldDef[]>([]);
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
@@ -27,7 +29,7 @@ export default function FieldsPage() {
   const [editId, setEditId] = useState<string | null>(null);
 
   async function load() {
-    const data = await api<{ fields: FieldDef[] }>("fields");
+    const data = await api<{ fields: FieldDef[] }>(tenant, "fields");
     setFields(data.fields || []);
   }
 
@@ -65,10 +67,10 @@ export default function FieldsPage() {
     };
     try {
       if (editId) {
-        await api("fields", { method: "PATCH", body: JSON.stringify({ id: editId, ...payload }) });
+        await api(tenant, "fields", { method: "PATCH", body: JSON.stringify({ id: editId, ...payload }) });
         setMsg("Field updated");
       } else {
-        await api("fields", { method: "POST", body: JSON.stringify(payload) });
+        await api(tenant, "fields", { method: "POST", body: JSON.stringify(payload) });
         setMsg("Field added");
       }
       reset();
@@ -81,7 +83,7 @@ export default function FieldsPage() {
   async function remove(id: string) {
     if (!confirm("Remove this field?")) return;
     try {
-      await api("fields", { method: "DELETE", body: JSON.stringify({ id }) });
+      await api(tenant, "fields", { method: "DELETE", body: JSON.stringify({ id }) });
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Delete failed");
@@ -95,7 +97,7 @@ export default function FieldsPage() {
     if (idx < 0 || j < 0 || j >= ids.length) return;
     const next = [...ids];
     [next[idx], next[j]] = [next[j], next[idx]];
-    await api("fields", { method: "POST", body: JSON.stringify({ reorder: next }) });
+    await api(tenant, "fields", { method: "POST", body: JSON.stringify({ reorder: next }) });
     await load();
   }
 

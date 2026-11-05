@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { api, type SiteRecord } from "../../lib/api";
+import { useTenant } from "../../hooks/useTenant";
 
 const blank = {
   name: "",
@@ -10,6 +11,7 @@ const blank = {
 };
 
 export default function SitesPage() {
+  const tenant = useTenant();
   const [sites, setSites] = useState<SiteRecord[]>([]);
   const [form, setForm] = useState({ ...blank });
   const [editId, setEditId] = useState<string | null>(null);
@@ -17,7 +19,7 @@ export default function SitesPage() {
   const [msg, setMsg] = useState("");
 
   async function load() {
-    const data = await api<{ sites: SiteRecord[] }>("sites");
+    const data = await api<{ sites: SiteRecord[] }>(tenant, "sites");
     setSites(data.sites || []);
   }
 
@@ -48,13 +50,13 @@ export default function SitesPage() {
     setMsg("");
     try {
       if (editId) {
-        await api("sites", {
+        await api(tenant, "sites", {
           method: "PATCH",
           body: JSON.stringify({ id: editId, ...form }),
         });
         setMsg("Site updated");
       } else {
-        await api("sites", {
+        await api(tenant, "sites", {
           method: "POST",
           body: JSON.stringify(form),
         });
@@ -69,7 +71,7 @@ export default function SitesPage() {
 
   async function remove(id: string) {
     if (!confirm("Remove this site?")) return;
-    await api("sites", { method: "DELETE", body: JSON.stringify({ id }) });
+    await api(tenant, "sites", { method: "DELETE", body: JSON.stringify({ id }) });
     await load();
   }
 

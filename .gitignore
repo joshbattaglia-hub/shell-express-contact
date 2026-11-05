@@ -10,3 +10,6 @@ dist
 .env.*
 !.env.example
 *.zip
+.admin-password*.tmp
+.admin-password*.txt
+.admin-password*

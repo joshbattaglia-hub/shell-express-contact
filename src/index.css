@@ -14,10 +14,16 @@
   --card: #ffffff;
   --radius: 14px;
   --shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
-  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Futura PT", Futura, "Jost", sans-serif;
+  font-weight: 500;
   color: var(--ink);
   background: var(--bg);
   line-height: 1.45;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Futura PT", Futura, "Jost", sans-serif;
+  font-weight: 500;
 }
 
 * { box-sizing: border-box; }

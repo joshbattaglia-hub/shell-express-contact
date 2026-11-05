@@ -2,6 +2,7 @@ import {
   json, corsHeaders, requireAdmin, ensureSeeded, loadSites, saveSites,
   newId, melbourneNowIso, requireTenantOrError,
 } from "./lib/store.mjs";
+import { parseManagerEmails, formatManagerEmails, normalizeSiteRecord } from "./lib/recipients.mjs";
 
 export async function handler(event) {
   const origin = event.headers.origin || event.headers.Origin || "*";
@@ -15,24 +16,24 @@ export async function handler(event) {
     await ensureSeeded(tenant);
     if (event.httpMethod === "GET") {
       const { sites } = await loadSites(tenant);
-      return json(200, { sites, tenant }, origin);
+      return json(200, { sites: sites.map(normalizeSiteRecord), tenant }, origin);
     }
     if (event.httpMethod === "POST") {
       const body = JSON.parse(event.body || "{}");
       const name = String(body.name || "").trim();
       if (!name) return json(400, { error: "Name required" }, origin);
+      const parsed = parseManagerEmails(body.managerEmail ?? body.managerEmails);
+      if (!parsed.ok) return json(400, { error: parsed.error }, origin);
       const { sites, revision } = await loadSites(tenant);
-      const site = {
+      const site = normalizeSiteRecord({
         id: newId("site"), name,
         address: String(body.address || "").trim(),
-        managerName: String(body.managerName || "").trim(),
-        managerEmail: String(body.managerEmail || "").trim().toLowerCase(),
+        managerName: String(body.managerName ?? body.manager ?? "").trim(),
+        managerEmail: formatManagerEmails(parsed.emails),
+        managerEmails: parsed.emails,
         active: body.active !== false,
         createdAt: melbourneNowIso(), updatedAt: melbourneNowIso(),
-      };
-      if (!site.managerEmail || !site.managerEmail.includes("@")) {
-        return json(400, { error: "Manager email required" }, origin);
-      }
+      });
       sites.push(site);
       await saveSites(tenant, sites, true, revision || undefined);
       return json(201, { site }, origin);
@@ -44,20 +45,33 @@ export async function handler(event) {
       const { sites, revision } = await loadSites(tenant);
       const idx = sites.findIndex((s) => s.id === id);
       if (idx === -1) return json(404, { error: "Site not found" }, origin);
-      const cur = sites[idx];
-      const next = {
+      const cur = normalizeSiteRecord(sites[idx]);
+      let managerEmails = cur.managerEmails;
+      let managerEmail = cur.managerEmail;
+      if (body.managerEmail != null || body.managerEmails != null) {
+        const parsed = parseManagerEmails(body.managerEmail ?? body.managerEmails);
+        if (!parsed.ok) return json(400, { error: parsed.error }, origin);
+        managerEmails = parsed.emails;
+        managerEmail = formatManagerEmails(parsed.emails);
+      }
+      const managerName =
+        body.managerName != null
+          ? String(body.managerName).trim()
+          : body.manager != null
+            ? String(body.manager).trim()
+            : cur.managerName;
+      const next = normalizeSiteRecord({
         ...cur,
         name: body.name != null ? String(body.name).trim() : cur.name,
         address: body.address != null ? String(body.address).trim() : cur.address,
-        managerName: body.managerName != null ? String(body.managerName).trim() : cur.managerName,
-        managerEmail: body.managerEmail != null ? String(body.managerEmail).trim().toLowerCase() : cur.managerEmail,
+        managerName,
+        managerEmail,
+        managerEmails,
         active: body.active != null ? !!body.active : cur.active,
         updatedAt: melbourneNowIso(),
-      };
+      });
       if (!next.name) return json(400, { error: "Name required" }, origin);
-      if (!next.managerEmail || !next.managerEmail.includes("@")) {
-        return json(400, { error: "Manager email required" }, origin);
-      }
+      if (!next.managerEmails?.length) return json(400, { error: "At least one manager email is required" }, origin);
       sites[idx] = next;
       await saveSites(tenant, sites, true, revision || undefined);
       return json(200, { site: next }, origin);

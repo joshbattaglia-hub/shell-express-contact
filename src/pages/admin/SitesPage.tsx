@@ -1,6 +1,11 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { api, type SiteRecord } from "../../lib/api";
 import { useTenant } from "../../hooks/useTenant";
+import {
+  parseManagerEmailsClient,
+  displayManagerName,
+  displayManagerEmails,
+} from "../../lib/emails";
 
 const blank = {
   name: "",
@@ -33,8 +38,8 @@ export default function SitesPage() {
     setForm({
       name: s.name,
       address: s.address || "",
-      managerName: s.managerName || "",
-      managerEmail: s.managerEmail || "",
+      managerName: displayManagerName(s),
+      managerEmail: displayManagerEmails(s),
       active: s.active !== false,
     });
     setMsg("");
@@ -49,17 +54,27 @@ export default function SitesPage() {
     e.preventDefault();
     setError("");
     setMsg("");
+    const parsed = parseManagerEmailsClient(form.managerEmail);
+    if (!parsed.ok) {
+      setError(parsed.error);
+      return;
+    }
+    const payload = {
+      ...form,
+      managerEmail: parsed.emails.join(", "),
+      managerEmails: parsed.emails,
+    };
     try {
       if (editId) {
         await api(tenant, "sites", {
           method: "PATCH",
-          body: JSON.stringify({ id: editId, ...form }),
+          body: JSON.stringify({ id: editId, ...payload }),
         });
         setMsg("Site updated");
       } else {
         await api(tenant, "sites", {
           method: "POST",
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         });
         setMsg("Site added");
       }
@@ -99,7 +114,17 @@ export default function SitesPage() {
           </div>
           <div className="field">
             <label htmlFor="managerEmail">Manager email</label>
-            <input id="managerEmail" type="email" required value={form.managerEmail} onChange={(e) => setForm({ ...form, managerEmail: e.target.value })} />
+            <input
+              id="managerEmail"
+              type="text"
+              inputMode="email"
+              autoComplete="off"
+              required
+              value={form.managerEmail}
+              onChange={(e) => setForm({ ...form, managerEmail: e.target.value })}
+              placeholder="one@example.com, two@example.com"
+            />
+            <p className="hint">One or more addresses, separated by commas.</p>
           </div>
         </div>
         <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -134,8 +159,8 @@ export default function SitesPage() {
                   <strong>{s.name}</strong>
                   {s.address ? <div className="muted">{s.address}</div> : null}
                 </td>
-                <td>{s.managerName || "—"}</td>
-                <td>{s.managerEmail}</td>
+                <td>{displayManagerName(s) || "—"}</td>
+                <td>{displayManagerEmails(s) || "—"}</td>
                 <td>{s.active !== false ? "Yes" : "No"}</td>
                 <td>
                   <div className="row-actions">

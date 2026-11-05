@@ -5,6 +5,7 @@
  * Never throws to callers for "not configured" — returns a pending status instead.
  * Do NOT wire Gmail/connectors here.
  */
+import { recipientsFromSite } from "./recipients.mjs";
 
 function configuredProvider() {
   if (process.env.RESEND_API_KEY && process.env.EMAIL_FROM) return "resend";
@@ -165,8 +166,9 @@ export function buildEnquiryEmail({ enquiry, site, settings }) {
   const html = `<pre style="font-family:system-ui,sans-serif;white-space:pre-wrap">${text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")}</pre>`;
+  const to = recipientsFromSite(site);
   return {
-    to: site?.managerEmail,
+    to,
     cc: settings?.ccAddress || undefined,
     fromName: settings?.fromName || "Shell Express Contact",
     subject,
@@ -174,3 +176,6 @@ export function buildEnquiryEmail({ enquiry, site, settings }) {
     html,
   };
 }
+
+export { recipientsFromSite, parseManagerEmails, formatManagerEmails } from "./recipients.mjs";
+

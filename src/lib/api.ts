@@ -46,6 +46,9 @@ export type SiteRecord = {
   address: string;
   managerName: string;
   managerEmail: string;
+  managerEmails?: string[];
+  manager?: string;
+  manager_name?: string;
   active: boolean;
 };
 export type Enquiry = {
